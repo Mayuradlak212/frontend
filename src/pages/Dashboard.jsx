@@ -12,6 +12,7 @@ import {
   Button,
   TextField,
 } from "@mui/material";
+import {useNavigate} from "react-router-dom"
 const courses = [
   {
     title: "Data Science",
@@ -84,6 +85,7 @@ const CourseGrid = () => {
 };
 
 const Dashboard = () => {
+  const navigate=useNavigate();
   return (
     <Box sx={{ backgroundColor: "white" }}>
       {/* Header */}
@@ -98,6 +100,7 @@ const Dashboard = () => {
           variant="contained"
           color="secondary"
           sx={{ mt: 4, px: 4, py: 1, fontWeight: "bold" }}
+          onClick={()=>navigate("/auth/login")}
         >
           Get Started
         </Button>

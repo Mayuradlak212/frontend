@@ -103,7 +103,7 @@ function CreateTest() {
   const handleInputChange = (e) => {
     setNoteData({ ...noteData, [e.target.name]: e.target.value });
   };
-  
+
   const handleAddNote = () => {
     axios
       .post(`${LIVE_URL}/test/test`, noteData)
@@ -123,12 +123,14 @@ function CreateTest() {
     setNotesEdit({ ...notesEdit, [name]: value });
   };
   const emptyRows =
-  rowsNotesPerPage > 0 ? Math.max(0, rowsNotesPerPage - filteredNotes?.length) : 0;
-const handleClose = () => {
-  setOpen(false);
-  setNotesOpen(false);
-};
-const handleChangePage = (event, newPage) => {
+    rowsNotesPerPage > 0
+      ? Math.max(0, rowsNotesPerPage - filteredNotes?.length)
+      : 0;
+  const handleClose = () => {
+    setOpen(false);
+    setNotesOpen(false);
+  };
+  const handleChangePage = (event, newPage) => {
     setNotesCurrentPage(newPage);
   };
   const handleChangeRowsPerPage = (event) => {
@@ -229,12 +231,12 @@ const handleChangePage = (event, newPage) => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell  sx={{ fontWeight: "bold" }} >ID</TableCell>
-              <TableCell  sx={{ fontWeight: "bold" }} >Name</TableCell>
-              <TableCell  sx={{ fontWeight: "bold" }} >Course</TableCell>
-              <TableCell  sx={{ fontWeight: "bold" }} >Technology</TableCell>
-              <TableCell  sx={{ fontWeight: "bold" }} >Upload Date</TableCell>
-              <TableCell  sx={{ fontWeight: "bold" }} >Actions</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Course</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Technology</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Upload Date</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

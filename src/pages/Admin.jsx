@@ -13,8 +13,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  InputAdornment,
+  TextField,FormControl,InputLabel,Select,
+  InputAdornment,MenuItem,
   IconButton as MuiIconButton,
   Paper,
   TablePagination,
@@ -45,7 +45,8 @@ const UserList = () => {
   const [rowsNotesPerPage, setNotesRowsPerPage] = useState(5);
   const [filteredNotes, setFilteredNotes] = useState([]);
   const [searchNotesQuery, setSearchNotesQuery] = useState("");
-
+  const [batch, setBatch] = React.useState("");
+  const [studentPopup, setStudentPopup] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -63,7 +64,9 @@ const UserList = () => {
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
-
+  const handleBatchChange = (event) => {
+    setBatch(event.target.value);
+  };
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesEdit, setNotesEdit] = useState({});
   const [username, setUsername] = useState("");
@@ -107,7 +110,7 @@ const UserList = () => {
   const handleDelete = async (user) => {
     if (window.confirm(`Are you sure you want to delete ${user.name}?`)) {
       try {
-        await axios.delete(`${LIVE_URL}/users/users/${user._id}`);
+        await axios.delete(`${LIVE_URL}/user/users/${user._id}`);
         setUsers(users.filter((u) => u.id !== user.id));
         setFilteredUsers(filteredUsers.filter((u) => u._id !== user.id));
       } catch (error) {
@@ -242,10 +245,54 @@ const UserList = () => {
     const { name, value } = e.target;
     setNotesEdit({ ...notesEdit, [name]: value });
   };
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    batchId: "507f191e810c19729de860ea",
+  });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Make the API request
+      const response = await axios.post(`${LIVE_URL}/user/register`, {
+        ...formData,
+      });
+      console.log("response: ", response.data);
+      localStorage.setItem("user", JSON.stringify(response.data.data));
+      toast.success(response.data.message);
+      // navigate("/");
+      // window.location.reload();
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (err) {
+      toast.error(err.message);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+
   return (
     <Box sx={{ width: "97%", overflowX: "auto", boxShadow: 3, padding: 2 }}>
-      <Tabs value={activeTab} sx={{margin:"10px 0px"}} onChange={handleTabChange}>
-        <Tab label="Users"  />
+      <Tabs
+        value={activeTab}
+        sx={{ margin: "10px 0px" }}
+        onChange={handleTabChange}
+      >
+        <Tab label="Users" />
         <Tab label="Notes" />
         <Tab label="Test" />
         <Tab label="Assignment" />
@@ -254,86 +301,94 @@ const UserList = () => {
       </Tabs>
 
       {isAuthenticated || localStorage.getItem("role") == "admin" ? (
-      <>
-       {activeTab==0&&<>
-         <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6">User List</Typography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Search"
-                variant="outlined"
-                value={searchQuery}
-                onChange={handleSearch}
-                placeholder="Search by name or email"
-                size="small"
-                sx={{ width: "50%" }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <MuiIconButton aria-label="search" onClick={handleSearch}>
-                        <SearchIcon />
-                      </MuiIconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-             
-            </Grid>
-          </Grid>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell  sx={{ fontWeight: "bold" }} >ID</TableCell>
-                <TableCell  sx={{ fontWeight: "bold" }} >Name</TableCell>
-                <TableCell  sx={{ fontWeight: "bold" }} >Email</TableCell>
-                <TableCell  sx={{ fontWeight: "bold" }} >Date</TableCell>
-                <TableCell  sx={{ fontWeight: "bold" }} >Enroll ID</TableCell>
-                <TableCell  sx={{ fontWeight: "bold" }} >Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredUsers
-                ?.slice(
-                  currentPage * rowsPerPage,
-                  currentPage * rowsPerPage + rowsPerPage
-                )
-                ?.map((user, index) => (
-                  <TableRow key={user?._id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>{user?.name}</TableCell>
-                    <TableCell>{user?.email}</TableCell>
-                    <TableCell>{user?.createdAt.slice(0, 10)}</TableCell>
-                    <TableCell>{user?._id}</TableCell>
-                    <TableCell>
-                      <IconButton onClick={() => handleEdit(user)}>
-                        <EditIcon color="primary" />
-                      </IconButton>
-                      <IconButton onClick={() => handleDelete(user)}>
-                        <DeleteIcon color="error" />
-                      </IconButton>
-                    </TableCell>
+        <>
+          {activeTab == 0 && (
+            <>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6">User List</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Button color="primary" onClick={()=>setStudentPopup(true)} variant="contained">
+                    Create Student
+                  </Button>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Search"
+                    variant="outlined"
+                    value={searchQuery}
+                    onChange={handleSearch}
+                    placeholder="Search by name or email"
+                    size="small"
+                    sx={{ width: "50%" }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <MuiIconButton
+                            aria-label="search"
+                            onClick={handleSearch}
+                          >
+                            <SearchIcon />
+                          </MuiIconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+              </Grid>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Enroll ID</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
                   </TableRow>
-                ))}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 53 }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={filteredUsers?.length || 0}
-            rowsPerPage={rowsPerPage}
-            page={currentPage}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-          </>}
-         
+                </TableHead>
+                <TableBody>
+                  {filteredUsers
+                    ?.slice(
+                      currentPage * rowsPerPage,
+                      currentPage * rowsPerPage + rowsPerPage
+                    )
+                    ?.map((user, index) => (
+                      <TableRow key={user?._id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{user?.name}</TableCell>
+                        <TableCell>{user?.email}</TableCell>
+                        <TableCell>{user?.createdAt.slice(0, 10)}</TableCell>
+                        <TableCell>{user?._id}</TableCell>
+                        <TableCell>
+                          <IconButton onClick={() => handleEdit(user)}>
+                            <EditIcon color="primary" />
+                          </IconButton>
+                          <IconButton onClick={() => handleDelete(user)}>
+                            <DeleteIcon color="error" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 53 }}>
+                      <TableCell colSpan={6} />
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={filteredUsers?.length || 0}
+                rowsPerPage={rowsPerPage}
+                page={currentPage}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </>
+          )}
         </>
       ) : (
         <Dialog
@@ -387,51 +442,159 @@ const UserList = () => {
         </Dialog>
       )}
 
-  
-   {activeTab==1&&  <NotesEdit/> }
-     {activeTab==2&& <>    <Typography fontSize={"20px"} >Tests</Typography><CreateTest /></>}
-     {activeTab==3&& <>    <Typography fontSize={"20px"} >Assignment</Typography><Assignment /></>}
-     {activeTab==4&& <>    <Typography fontSize={"20px"} >Source Code </Typography><SourceCode /></>}
-     {activeTab==5&& <>    <Typography fontSize={"20px"} >Batch </Typography><AdminBatch /></>}
-   
-       <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogContent>
-              <TextField
-                margin="2"
-                padding="2"
-                sx={{ marginTop: "10px" }}
-                label="Name"
-                value={editedUser?.name}
-                onChange={(e) =>
-                  setEditedUser({ ...editedUser, name: e.target.value })
-                }
-                fullWidth
-              />
-              <TextField
-                label="Email"
-                sx={{ marginTop: "10px" }}
-                value={editedUser?.email}
-                onChange={(e) =>
-                  setEditedUser({ ...editedUser, email: e.target.value })
-                }
-                fullWidth
-              />
-              {/* Add other fields as needed */}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCancelEdit} color="primary">
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSaveEdit}
-                color="primary"
-                variant="contained"
+      {activeTab == 1 && <NotesEdit />}
+      {activeTab == 2 && (
+        <>
+          {" "}
+          <Typography fontSize={"20px"}>Tests</Typography>
+          <CreateTest />
+        </>
+      )}
+      {activeTab == 3 && (
+        <>
+          {" "}
+          <Typography fontSize={"20px"}>Assignment</Typography>
+          <Assignment />
+        </>
+      )}
+      {activeTab == 4 && (
+        <>
+          {" "}
+          <Typography fontSize={"20px"}>Source Code </Typography>
+          <SourceCode />
+        </>
+      )}
+      {activeTab == 5 && (
+        <>
+          {" "}
+          <Typography fontSize={"20px"}>Batch </Typography>
+          <AdminBatch />
+        </>
+      )}
+
+      <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+        <DialogTitle>Edit User</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="2"
+            padding="2"
+            sx={{ marginTop: "10px" }}
+            label="Name"
+            value={editedUser?.name}
+            onChange={(e) =>
+              setEditedUser({ ...editedUser, name: e.target.value })
+            }
+            fullWidth
+          />
+          <TextField
+            label="Email"
+            sx={{ marginTop: "10px" }}
+            value={editedUser?.email}
+            onChange={(e) =>
+              setEditedUser({ ...editedUser, email: e.target.value })
+            }
+            fullWidth
+          />
+          {/* Add other fields as needed */}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelEdit} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleSaveEdit} color="primary" variant="contained">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={studentPopup} onClose={() => setStudentPopup(false)}>
+        <Paper
+          elevation={3}
+          sx={{
+            padding: 3,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h5">Create Student</Typography>
+          <Box component="form" sx={{ mt: 1 }}>
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              id="name"
+              onChange={handleChange}
+              label="Full Name"
+              name="name"
+              autoComplete="name"
+              autoFocus
+            />
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              onChange={handleChange}
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+            />
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              onChange={handleChange}
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="new-password"
+            />
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              name="confirmPassword"
+              label="Confirm Password"
+              type="password"
+              id="confirmPassword"
+            />
+
+            {/* Batch Dropdown */}
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel id="batch-label">Batch</InputLabel>
+              <Select
+                labelId="batch-label"
+                id="batch"
+                value={batch}
+                onChange={handleBatchChange}
+                label="Batch"
               >
-                Save
-              </Button>
-            </DialogActions>
-          </Dialog>
+                {/* Example batch options */}
+                <MenuItem value="batch1">Full Stack Development</MenuItem>
+                <MenuItem value="batch2">Data Science With Python</MenuItem>
+                <MenuItem value="batch3">DevOps Batch</MenuItem>
+              </Select>
+            </FormControl>
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              sx={{ mt: 2 }}
+              onClick={handleSubmit}
+            >
+      Create Student
+            </Button>
+          </Box>
+        </Paper>
+      </Dialog>
     </Box>
   );
 };
